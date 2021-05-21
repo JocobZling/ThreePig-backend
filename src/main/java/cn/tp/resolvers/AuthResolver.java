@@ -1,7 +1,7 @@
-package cn.hs.resolvers;
+package cn.tp.resolvers;
 
-import cn.hs.annotations.Auth;
-import cn.hs.entities.User;
+import cn.tp.annotations.Auth;
+import cn.tp.entities.User;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;

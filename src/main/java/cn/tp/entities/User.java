@@ -1,4 +1,4 @@
-package cn.hs.entities;
+package cn.tp.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

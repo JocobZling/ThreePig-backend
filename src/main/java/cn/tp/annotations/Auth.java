@@ -1,4 +1,4 @@
-package cn.hs.annotations;
+package cn.tp.annotations;
 
 import java.lang.annotation.*;
 

@@ -1,4 +1,4 @@
-package cn.hs.entities;
+package cn.tp.entities;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

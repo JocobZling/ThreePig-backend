@@ -1,4 +1,4 @@
-package cn.hs.exceptions;
+package cn.tp.exceptions;
 
 public class BusinessException extends Exception {
     public BusinessException(String message) {

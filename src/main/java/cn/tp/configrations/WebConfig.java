@@ -1,6 +1,6 @@
-package cn.hs.configrations;
+package cn.tp.configrations;
 
-import cn.hs.resolvers.AuthResolver;
+import cn.tp.resolvers.AuthResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;

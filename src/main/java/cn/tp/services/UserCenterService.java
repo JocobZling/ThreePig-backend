@@ -1,6 +1,6 @@
-package cn.hs.services;
+package cn.tp.services;
 
-import cn.hs.entities.User;
+import cn.tp.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
