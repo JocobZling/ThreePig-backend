@@ -1,14 +1,16 @@
+photoAddr: D:\\ThreePigProject\\photo\\
+faceAddr: D:\\ThreePigProject\\face\\
+ak: 5549b42e7a644bbbbdd932f73fa20ef7
+sk: 172e10898d364ca89c2bd4ecc824bc10
 
 database:
-  url: jdbc:mysql://localhost:3306/tpdatabase?useUnicode=true&characterEncoding=utf-8
+  url: jdbc:mysql://localhost:3306/threepigs?useUnicode=true&characterEncoding=utf-8
   username: root
   password: pass
 spring:
   cloud:
     config:
-      allowOverride: true
-      overrideNone: true
-      overrideSystemProperties: true
+      enabled: false
   datasource:
     url: ${database.url}
     username: ${database.username}
@@ -19,7 +21,7 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
   application:
-    name: Three-Pigs
+    name: ThreePigs
 server:
   port: 8080
 
