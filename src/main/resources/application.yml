@@ -27,3 +27,4 @@ server:
 
 spring.mvc.static-path-pattern: /images/**
 spring.resources.static-locations: file:D://ThreePigProject/photo/
+

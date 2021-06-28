@@ -22,5 +22,6 @@ public class Clustering {
     @JsonProperty("userId")
     private Long userId;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @Builder.Default
     private Date createTime = new Date();
 }

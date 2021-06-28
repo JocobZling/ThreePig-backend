@@ -14,7 +14,7 @@ import java.util.Date;
 @Builder
 @Entity
 
-public class Photo {
+public class Photo{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,4 +30,5 @@ public class Photo {
     private String colorScore;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime = new Date();
+
 }
