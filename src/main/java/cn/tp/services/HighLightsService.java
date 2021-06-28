@@ -47,6 +47,39 @@ public class HighLightsService {
 
     }
 
+    // num是指定拿出最近几天的数据 flag是指定facescore排序还是allscore排序 photoNum是指定最后取出多少张
+    public List<String> getRecentTop(Long userId, int num,boolean flag,int photoNum)
+    {
+        //
+        List<Photo> resultPhoto = photoRepository.findPhotoByUserId(userId);
+        //拿到最近num 天的数据 不够num全拿来
+        List<Photo> RencntList = SortUtil.GetNumPhotoBaseTime(resultPhoto,num);
+        //根据分数排序
+        List<Photo> SortRecentList = SortUtil.SortPhoto(RencntList,flag);
+
+        List<String> result = new ArrayList<String>();
+        int len = SortRecentList.size();
+        if(len > photoNum)
+        {
+            for(int i = 0;i<photoNum;i++)
+            {
+                Photo tmp = SortRecentList.get(i);
+                result.add(tmp.getPosition());
+            }
+
+        }
+        else
+        {
+            for(Photo tmp : SortRecentList)
+            {
+                result.add(tmp.getPosition());
+            }
+        }
+        return result;
+
+
+    }
+
     public List<Photo> test(Long userId)
     {
         return photoRepository.findPhotoByUserId(userId);

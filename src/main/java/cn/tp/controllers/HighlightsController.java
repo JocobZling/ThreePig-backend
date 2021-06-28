@@ -80,14 +80,27 @@ public class HighlightsController {
 
     //拿出用户最近的五天top person_scores 20
     @GetMapping(value = "/recent/person/{userId}")
-    public ResponseEntity<?> getRecentPersonHighlight() {
-        return ResponseEntity.ok(123);
+    public ResponseEntity<?> getRecentPersonHighlight(@PathVariable Long userId) {
+        int num = 5; //最近几天
+        int photoNum = 20; //图片数量
+        //flag = true 代表只按照faceScore排序
+        boolean flag = true;
+        List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
+
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
     //拿出用户最近的五天top all_scores top 20
     @GetMapping(value = "/recent/all/{userId}")
-    public ResponseEntity<?> getRecentAllHighlight() {
-        return ResponseEntity.ok(123);
+    public ResponseEntity<?> getRecentAllHighlight(@PathVariable Long userId) {
+        int num = 5; //最近几天
+        int photoNum = 20; //图片数量
+        //flag = flase 代表只按照所有的分数排序
+        boolean flag = false;
+        List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
+
+        return new ResponseEntity<>(result,HttpStatus.OK);
+
     }
 
     @GetMapping(value="test/{userId}")

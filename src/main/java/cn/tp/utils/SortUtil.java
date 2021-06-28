@@ -3,9 +3,9 @@ package cn.tp.utils;
 import cn.tp.entities.Photo;
 import lombok.*;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.function.DoubleBinaryOperator;
 
 //给Photo排序
@@ -85,6 +85,64 @@ public class SortUtil {
         });
 
         return resultPhoto;
+
+    }
+
+    private static String DateToStringDay(Date time)
+    {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        String strTime = df.format(time);
+        return strTime;
+    }
+
+    public static List<Photo> SortTime(List<Photo> resultPhoto)
+    {
+        Collections.sort(resultPhoto, new Comparator<Photo>() {
+            @Override
+            public int compare(Photo o1, Photo o2) {
+                Date time1 = o1.getCreateTime();
+                Date time2 = o2.getCreateTime();
+
+                String strTime1 = DateToStringDay(time1);
+                String strTime2 = DateToStringDay(time2);
+
+                int res = strTime2.compareTo(strTime1);
+                return res;
+
+            }
+        });
+        //System.out.println(resultPhoto);
+        return resultPhoto;
+    }
+
+    public static List<Photo> GetNumPhotoBaseTime(List<Photo> resultPhoto, int num)
+    {
+        int len = resultPhoto.size();
+        if(len <= num)
+        {
+            return resultPhoto;
+        }
+        List<Photo> SortTimePhoto = SortTime(resultPhoto);
+        String CurTime = DateToStringDay(SortTimePhoto.get(0).getCreateTime());
+
+        int index = 1;
+        List<Photo> result = new ArrayList<Photo>();
+        for(int i = 0;i<len;i++)
+        {
+            Photo tmp = SortTimePhoto.get(i);
+            String TmpTime = DateToStringDay(tmp.getCreateTime());
+            if(CurTime.compareTo(TmpTime) != 0)
+            {
+                CurTime = TmpTime;
+                index++;
+            }
+            if(index > num)
+            {
+                break;
+            }
+            result.add(tmp);
+        }
+        return result;
 
     }
 
