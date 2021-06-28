@@ -1,5 +1,5 @@
-photoAddr: D:\\ThreePigProject\\photo\\
-faceAddr: D:\\ThreePigProject\\face\\
+photoAddr: D:/ThreePigProject/photo/
+faceAddr: D:/ThreePigProject/face/
 ak: 5549b42e7a644bbbbdd932f73fa20ef7
 sk: 172e10898d364ca89c2bd4ecc824bc10
 
@@ -25,4 +25,5 @@ spring:
 server:
   port: 8080
 
-
+spring.mvc.static-path-pattern: /images/**
+spring.resources.static-locations: file:D://ThreePigProject/photo/

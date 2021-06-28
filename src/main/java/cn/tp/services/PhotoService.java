@@ -5,6 +5,7 @@ import cn.tp.entities.FaceClustering;
 import cn.tp.entities.Photo;
 import cn.tp.entities.bo.FaceCompareConfidenceAndClusterIdBo;
 import cn.tp.entities.bo.UserUploadPhotoBo;
+import cn.tp.entities.vo.PhotoDateAndSorce;
 import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
@@ -24,7 +25,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PhotoService {
@@ -194,8 +197,24 @@ public class PhotoService {
         return photoRepository.findPhotoByTypeAndUserId(type, userId);
     }
 
-    public List<Photo> findOneDayEightPhotoByUserId(Long userId, Date date) {
-        return photoRepository.findPhotoByUserIdAndCreateTimeRangeEight(userId, date);
+    public List<PhotoDateAndSorce> findAllTimesEightPhotoByUserId(Long userId) {
+        List<Photo> photoList = photoRepository.findPhotoByUserId(userId);
+        HashSet<String> date = new HashSet<>();
+        List<PhotoDateAndSorce> result = new ArrayList<>();
+        photoList.forEach(photo -> {
+            date.add(photo.getCreateTime().toString().split(" ")[0]);
+        });
+        date.forEach(s -> {
+            PhotoDateAndSorce photoDateAndSorce = new PhotoDateAndSorce();
+            photoDateAndSorce.setDate(s);
+            List<Photo> photos = new ArrayList<>();
+            photoList.forEach(photo -> {
+                if (photo.getCreateTime().toString().split(" ")[0].equals(s)) photos.add(photo);
+            });
+            photoDateAndSorce.setPhotoList(photos);
+            result.add(photoDateAndSorce);
+        });
+        return result;
     }
 
     public List<HashMap<String, String>> findAllTypeOnePhotoByUserId(Long userId) {

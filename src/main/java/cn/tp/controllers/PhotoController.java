@@ -41,9 +41,9 @@ public class PhotoController {
         return ResponseEntity.ok(photoService.findOneTypeAllPhotosByUserId(type, userId));
     }
 
-    @GetMapping(value = "/day/{date}/eight/{userId}")
-    public ResponseEntity<?> getOneDayEightPhoto(@PathVariable Date date, @PathVariable Long userId) {
-        return ResponseEntity.ok(photoService.findOneDayEightPhotoByUserId(userId, date));
+    @GetMapping(value = "/all/eight/{userId}")
+    public ResponseEntity<?> getOneDayEightPhoto(@PathVariable Long userId) {
+        return ResponseEntity.ok(photoService.findAllTimesEightPhotoByUserId(userId));
     }
 
     @GetMapping(value = "/all/type/one/{userId}")

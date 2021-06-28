@@ -20,7 +20,7 @@ public class HighlightsController {
         this.photoService = photoService;
     }
 
-    //封面一张
+    //封面一张 所有
     @GetMapping(value="/{userId}")
     public ResponseEntity<?> getHighlightPageContent(@PathVariable Long userId){
         return ResponseEntity.ok(123);
