@@ -16,7 +16,8 @@ public interface PhotoRepository extends JpaRepository<Photo, Long> {
 
     List<Photo> findPhotoByUserId(Long userId);
 
-    List<Photo> findPhotoByUserIdAndCreateTime(Long userId, Date time);
+    @Query(value = "select * from photo where createTime like %?2% and userId = ?1", nativeQuery = true)
+    List<Photo> findPhotoByUserIdAndCreateTime(Long userId, String time);
 
     @Query(value = "select createTime from photo", nativeQuery = true)
     HashSet<String> findAllCreateTime();

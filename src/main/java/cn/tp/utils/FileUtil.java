@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.apache.commons.io.FileUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -133,6 +135,19 @@ public class FileUtil {
         }
         return "";
     }
+
+    public static List<String> getPictureSize(String path) throws IOException {
+        File picFile = new File(path);
+        if (!picFile.exists() || picFile.isDirectory()) {
+            throw new IOException("文件不存在!");
+        }
+        List<String> imgInfo = new ArrayList<>();
+        Image src = ImageIO.read(picFile);
+        imgInfo.add(String.valueOf(src.getWidth(null)));
+        imgInfo.add(String.valueOf(src.getHeight(null)));
+        return imgInfo;
+    }
+
 //    public static MultipartFile fileToMultipart(String filePath) {
 //        try {
 //            // File转换成MutipartFile

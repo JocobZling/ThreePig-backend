@@ -41,7 +41,7 @@ public class PhotoController {
     }
 
     @GetMapping(value = "/day/{date}/all/{userId}")
-    public ResponseEntity<?> getOneDayAllPhoto(@PathVariable Date date, @PathVariable Long userId) {
+    public ResponseEntity<?> getOneDayAllPhoto(@PathVariable String date, @PathVariable Long userId) throws Exception {
         return ResponseEntity.ok(photoService.findOneDaysAllPhotosByUserId(userId, date));
     }
 

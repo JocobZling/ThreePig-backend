@@ -6,6 +6,7 @@ import cn.tp.entities.Photo;
 import cn.tp.entities.bo.FaceCompareConfidenceAndClusterIdBo;
 import cn.tp.entities.bo.UserUploadPhotoBo;
 import cn.tp.entities.vo.PhotoDateAndSorce;
+import cn.tp.entities.vo.PhotoDisplayVo;
 import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.NotNull;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -200,8 +202,25 @@ public class PhotoService {
         return photoRepository.findPhotoByUserId(userId);
     }
 
-    public List<Photo> findOneDaysAllPhotosByUserId(Long userId, Date date) {
-        return photoRepository.findPhotoByUserIdAndCreateTime(userId, date);
+    public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) throws Exception {
+        List<Photo> photoList = photoRepository.findPhotoByUserIdAndCreateTime(userId, date);
+        List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
+        photoList.forEach(photo -> {
+            String position = photo.getPosition();
+            String path = position.split("/images/")[1];
+            System.out.println(path);
+            try {
+                List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
+                PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();
+                photoDisplayVo.setHeight(imageInfo.get(1));
+                photoDisplayVo.setWidth(imageInfo.get(0));
+                photoDisplayVo.setSrc(photo.getPosition());
+                photoDisplayList.add(photoDisplayVo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return photoDisplayList;
     }
 
     public List<Photo> findOneTypeAllPhotosByUserId(String type, Long userId) {
