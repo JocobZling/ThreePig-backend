@@ -2,11 +2,20 @@ package cn.tp.controllers;
 
 import cn.tp.entities.bo.UserUploadPhotoBo;
 import cn.tp.services.PhotoService;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
+import java.util.UUID;
 
 
 @RestController
@@ -20,10 +29,10 @@ public class PhotoController {
         this.photoService = photoService;
     }
 
-    @PostMapping(value = "/upload")
-    public ResponseEntity<?> photoUpload(@RequestBody UserUploadPhotoBo userUploadPhotoBo) throws Exception {
-        photoService.savePhotoToFile(userUploadPhotoBo);
-        return null;
+    @PostMapping(value = "/upload/{userId}")
+    public ResponseEntity<?> photoUpload(@RequestParam(value = "file") MultipartFile[] files, @PathVariable Long userId, HttpServletRequest request) throws Exception {
+        photoService.savePhotoToFile(files, userId);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping(value = "/days/all/{userId}")

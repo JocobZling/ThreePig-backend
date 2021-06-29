@@ -6,16 +6,17 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 
-public class FileUtils {
+public class FileUtil {
     public static boolean base64ToFile(String filePath, String base64Data) throws Exception {
         String dataPrix = "";
         String data = "";
@@ -39,6 +40,36 @@ public class FileUtils {
         org.apache.commons.io.FileUtils.writeByteArrayToFile(new File(filePath), bs);
 
         return true;
+    }
+
+    public static List<String> saveFile(MultipartFile file, String path) {
+        BufferedOutputStream bw = null;
+        List<String> pathList = new ArrayList<>();
+        try {
+            String fileName = file.getOriginalFilename();
+            //判断是否有文件且是否为图片文件
+            if (fileName != null && !"".equalsIgnoreCase(fileName.trim()) && isImageFile(fileName)) {
+                String name = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10) + getFileType(fileName);
+                //创建输出文件对象
+                File outFile = new File(path + name);
+                //拷贝文件到输出文件对象
+                FileUtils.copyInputStreamToFile(file.getInputStream(), outFile);
+                pathList.add(name);
+                pathList.add(path + name);
+                return pathList;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bw != null) {
+                    bw.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     public static String encryptToBase64(String filePath) {
@@ -82,6 +113,26 @@ public class FileUtils {
         return item;
     }
 
+    private static Boolean isImageFile(String fileName) {
+        String[] img_type = new String[]{".jpg", ".jpeg", ".png", ".gif", ".bmp"};
+        if (fileName == null) {
+            return false;
+        }
+        fileName = fileName.toLowerCase();
+        for (String type : img_type) {
+            if (fileName.endsWith(type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getFileType(String fileName) {
+        if (fileName != null && fileName.indexOf(".") >= 0) {
+            return fileName.substring(fileName.lastIndexOf("."), fileName.length());
+        }
+        return "";
+    }
 //    public static MultipartFile fileToMultipart(String filePath) {
 //        try {
 //            // File转换成MutipartFile

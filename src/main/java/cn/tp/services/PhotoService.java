@@ -9,8 +9,8 @@ import cn.tp.entities.vo.PhotoDateAndSorce;
 import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
+import cn.tp.utils.FileUtil;
 import cn.tp.utils.OpenCVUtil;
-import cn.tp.utils.FileUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.chinamobile.cmss.sdk.ECloudDefaultClient;
 import com.chinamobile.cmss.sdk.ECloudServerException;
@@ -23,7 +23,11 @@ import com.chinamobile.cmss.sdk.response.bean.EngineClassify;
 import com.chinamobile.cmss.sdk.util.JacksonUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -43,6 +47,9 @@ public class PhotoService {
 
     @Value("${faceAddr}")
     private String faceAddr;
+
+    @Value("${imageUrl}")
+    private String imageUrl;
 
     private final PhotoRepository photoRepository;
 
@@ -64,21 +71,24 @@ public class PhotoService {
     //若最大分数小于多少？就将其定义一个新的clustering
     //保存到faceClustering表中
     //与所有该用户上传的小脸进行比对，比对分值高为？以上的分为一个类，若无则创建一个新的类
-    public void savePhotoToFile(UserUploadPhotoBo userUploadPhotoBo) throws Exception {
-        List<String> upload = userUploadPhotoBo.getPhotoList();
-        long userId = userUploadPhotoBo.getUserId();
-        for (String s : upload) {
-            String photoAddrPath = photoAddr + userUploadPhotoBo.getUserId() + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10) + "_uploadPhoto.png";
-            FileUtils.base64ToFile(photoAddrPath, s);
+    public void savePhotoToFile(MultipartFile[] files, Long userId) throws Exception {
+        assert files != null || files.length >= 1;
+        for (MultipartFile file : files) {
+            String photoSavePosition = imageUrl + Objects.requireNonNull(FileUtil.saveFile(file, photoAddr)).get(0);
+            String photoAddrPath = Objects.requireNonNull(FileUtil.saveFile(file, photoAddr)).get(1);
             Photo photo = new Photo();
             String colorScore = OpenCVUtil.calculateColorScore(photoAddrPath);
-            String image = s.split("base64,")[1];
+            String image = FileUtil.encryptToBase64(photoAddrPath);
             JSONObject response = faceService.getFaceDetection(photoAddrPath);
-            double faceNum = Double.parseDouble(String.valueOf(response.get("faceNum")));
+            double faceNum;
+            if (response == null)
+                faceNum = 0;
+            else
+                faceNum = Double.parseDouble(String.valueOf(response.get("faceNum")));
             if (faceNum > 0 && faceNum <= 10) {
                 photo.setType("人物");
                 photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoAddrPath);
+                photo.setPosition(photoSavePosition);
                 photo.setUserId(userId);
                 photo.setColorScore(colorScore);
                 photoRepository.save(photo);
@@ -94,7 +104,8 @@ public class PhotoService {
                     double rx = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("lowerRightX")));
                     double ry = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("lowerRightY")));
                     //对该位置人脸进行切割
-                    String faceAddrPath = faceAddr + userUploadPhotoBo.getUserId() + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10) + "_face.png";
+                    String faceName = userId + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10) + "_face.png";
+                    String faceAddrPath = faceAddr + faceName;
                     // OpenCVUtil.findAndCutFace(photoAddrPath, faceAddrPath);
                     try {
                         OpenCVUtil.cutPhotoFace(lx, ly, rx, ry, photoAddrPath, faceAddrPath);
@@ -139,7 +150,7 @@ public class PhotoService {
             } else if (faceNum > 10) {
                 photo.setType("群像");
                 photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoAddrPath);
+                photo.setPosition(photoSavePosition);
                 photo.setUserId(userId);
                 photo.setColorScore(colorScore);
                 photoRepository.save(photo);
@@ -147,7 +158,7 @@ public class PhotoService {
                 String type = getPhotoType(userId, image);
                 photo.setType(type);
                 photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoAddrPath);
+                photo.setPosition(photoSavePosition);
                 photo.setUserId(userId);
                 photo.setColorScore(colorScore);
                 photoRepository.save(photo);

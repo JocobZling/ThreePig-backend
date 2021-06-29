@@ -2,6 +2,8 @@ photoAddr: D:/ThreePigProject/photo/
 faceAddr: D:/ThreePigProject/face/
 ak: 5549b42e7a644bbbbdd932f73fa20ef7
 sk: 172e10898d364ca89c2bd4ecc824bc10
+imageUrl: http://127.0.0.1:8080/images/
+
 
 database:
   url: jdbc:mysql://localhost:3306/threepigs?useUnicode=true&characterEncoding=utf-8
@@ -22,6 +24,10 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
   application:
     name: ThreePigs
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 1000MB
 server:
   port: 8080
 
