@@ -198,8 +198,24 @@ public class PhotoService {
         return null;
     }
 
-    public List<Photo> findAllDaysPhotosByUserId(Long userId) {
-        return photoRepository.findPhotoByUserId(userId);
+    public List<PhotoDisplayVo> findAllDaysPhotosByUserId(Long userId) {
+        List<Photo> photoList = photoRepository.findPhotoByUserId(userId);
+        List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
+        photoList.forEach(photo -> {
+            String position = photo.getPosition();
+            String path = position.split("/images/")[1];
+            try {
+                List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
+                PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();
+                photoDisplayVo.setHeight(imageInfo.get(1));
+                photoDisplayVo.setWidth(imageInfo.get(0));
+                photoDisplayVo.setSrc(photo.getPosition());
+                photoDisplayList.add(photoDisplayVo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return photoDisplayList;
     }
 
     public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) throws Exception {
