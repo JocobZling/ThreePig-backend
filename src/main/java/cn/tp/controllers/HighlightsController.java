@@ -1,10 +1,10 @@
 package cn.tp.controllers;
 
 import cn.tp.entities.Photo;
+import cn.tp.entities.vo.TimeAndPosition;
 import cn.tp.services.HighLightsService;
 import cn.tp.services.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +16,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -34,7 +35,28 @@ public class HighlightsController {
     //封面一张 所有
     @GetMapping(value="/{userId}")
     public ResponseEntity<?> getHighlightPageContent(@PathVariable Long userId){
-        return ResponseEntity.ok(123);
+        // 先拿到每天里最精彩的第一张
+        List<HashMap<String,String>> oneTimeOnePhoto = highLightsService.getEverytimePhoto(userId);
+        if(oneTimeOnePhoto.size() == 0)
+        {
+            return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
+        }
+        // 在拿到person 分数最好的一张
+        String bestP = highLightsService.BsetPerson(userId);
+        //在拿到所有分数最好的一张
+        String bestA = highLightsService.BsetAll(userId);
+        // 最近face分数最好的
+        String bestRecentP = highLightsService.BestRecentPerson(userId);
+        // 最近all分数最好的
+        String bestRecentA = highLightsService.BestRecentAll(userId);
+
+        HashMap<String, TimeAndPosition> result = new HashMap<String, TimeAndPosition>();
+        result.put("EveryTime",new TimeAndPosition(oneTimeOnePhoto,null));
+        result.put("BestPerson",new TimeAndPosition(null,bestP));
+        result.put("BestAll",new TimeAndPosition(null,bestA));
+        result.put("BestRecentPerson",new TimeAndPosition(null,bestRecentP));
+        result.put("BestRecentAll",new TimeAndPosition(null,bestRecentA));
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     //
@@ -43,10 +65,16 @@ public class HighlightsController {
 //        return ResponseEntity.ok(123);
 //    }
 
-    //拿出用户每天的所有的top10
+    //拿出用户这一天的所有分数的top10
     @GetMapping(value = "/everyTimes/{createTime}/all/{userId}")
-    public ResponseEntity<?> getEveryTimesAllHighlight(@PathVariable Long userId,@PathVariable String time) {
-        return ResponseEntity.ok(123);
+    public ResponseEntity<?> getEveryTimesAllHighlight(@PathVariable Long userId,@PathVariable String createTime) {
+        int num = 10;
+        List<String> result = highLightsService.getTimeTop(userId,createTime,num);
+        if(result.size() == 0)
+        {
+            return new ResponseEntity<>("没有当日图片！",HttpStatus.OK);
+        }
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
     //拿出用户所有的top person_score 10
@@ -60,6 +88,10 @@ public class HighlightsController {
         //flag = true 代表只按照faceScore排序
         boolean flag = true;
         List<String> result = highLightsService.getTopPerson(userId,num,flag);
+        if(result.size() == 0)
+        {
+            return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
+        }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -74,6 +106,10 @@ public class HighlightsController {
         //flag = false 代表按照总分数排序
         boolean flag = false;
         List<String> result = highLightsService.getTopPerson(userId,num,flag);
+        if(result.size() == 0)
+        {
+            return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
+        }
         return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
@@ -86,6 +122,10 @@ public class HighlightsController {
         //flag = true 代表只按照faceScore排序
         boolean flag = true;
         List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
+        if(result.size() == 0)
+        {
+            return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
+        }
 
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
@@ -98,6 +138,10 @@ public class HighlightsController {
         //flag = flase 代表只按照所有的分数排序
         boolean flag = false;
         List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
+        if(result.size() == 0)
+        {
+            return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
+        }
 
         return new ResponseEntity<>(result,HttpStatus.OK);
 

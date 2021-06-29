@@ -88,7 +88,7 @@ public class SortUtil {
 
     }
 
-    private static String DateToStringDay(Date time)
+    public static String DateToStringDay(Date time)
     {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         String strTime = df.format(time);
@@ -145,5 +145,50 @@ public class SortUtil {
         return result;
 
     }
+
+    public static List<Photo> GetTimePhoto(List<Photo> AllPhoto,String time)
+    {
+        int len = AllPhoto.size();
+        List<Photo> result = new ArrayList<Photo>();
+        for(int i = 0;i<len;i++)
+        {
+            Photo tmp = AllPhoto.get(i);
+            String TmpTime = DateToStringDay(tmp.getCreateTime());
+
+            if(TmpTime.compareTo(time) == 0)
+            {
+                result.add(tmp);
+            }
+        }
+        return result;
+    }
+
+    public static List<List<Photo>> GetEveryTimePhoto(List<Photo> SortTimePhoto)
+    {
+        List<List<Photo>> result = new ArrayList<List<Photo>>();
+        String curTime = DateToStringDay(SortTimePhoto.get(0).getCreateTime());
+
+        int len = SortTimePhoto.size();
+        int index = 0;
+
+        while(index < len)
+        {
+            List<Photo> tmp = new ArrayList<Photo>();
+            while(index<len && curTime.compareTo(DateToStringDay(SortTimePhoto.get(index).getCreateTime())) == 0)
+            {
+                tmp.add(SortTimePhoto.get(index));
+                index++;
+
+            }
+            result.add(tmp);
+            if(index < len)
+            {
+                curTime = DateToStringDay(SortTimePhoto.get(index).getCreateTime());
+            }
+        }
+        return result;
+
+    }
+
 
 }
