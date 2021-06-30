@@ -14,20 +14,15 @@ import java.util.function.DoubleBinaryOperator;
 @NoArgsConstructor
 @Builder
 public class SortUtil {
-    public static List<Photo> SortPhoto(List<Photo> resultPhoto, boolean flag)
-    {
-        if(flag)
-        {
+    public static List<Photo> SortPhoto(List<Photo> resultPhoto, boolean flag) {
+        if (flag) {
             return SortPersonPhoto(resultPhoto);
-        }
-        else
-        {
+        } else {
             return SortAllPhoto(resultPhoto);
         }
     }
 
-    private static List<Photo> SortPersonPhoto(List<Photo> resultPhoto)
-    {
+    private static List<Photo> SortPersonPhoto(List<Photo> resultPhoto) {
         Collections.sort(resultPhoto, new Comparator<Photo>() {
             @Override
             public int compare(Photo o1, Photo o2) {
@@ -39,12 +34,9 @@ public class SortUtil {
 
                 Double diff = Score2 - Score1;
 
-                if(diff > 0)
-                {
+                if (diff > 0) {
                     return 1;
-                }
-                else if(diff < 0)
-                {
+                } else if (diff < 0) {
                     return -1;
                 }
                 return 0;
@@ -55,8 +47,7 @@ public class SortUtil {
 
     }
 
-    private static List<Photo> SortAllPhoto(List<Photo> resultPhoto)
-    {
+    private static List<Photo> SortAllPhoto(List<Photo> resultPhoto) {
         Collections.sort(resultPhoto, new Comparator<Photo>() {
             @Override
             public int compare(Photo o1, Photo o2) {
@@ -72,12 +63,9 @@ public class SortUtil {
 
                 Double diff = Score2 - Score1;
 
-                if(diff > 0)
-                {
+                if (diff > 0) {
                     return 1;
-                }
-                else if(diff < 0)
-                {
+                } else if (diff < 0) {
                     return -1;
                 }
                 return 0;
@@ -88,15 +76,13 @@ public class SortUtil {
 
     }
 
-    public static String DateToStringDay(Date time)
-    {
+    public static String DateToStringDay(Date time) {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         String strTime = df.format(time);
         return strTime;
     }
 
-    public static List<Photo> SortTime(List<Photo> resultPhoto)
-    {
+    public static List<Photo> SortTime(List<Photo> resultPhoto) {
         Collections.sort(resultPhoto, new Comparator<Photo>() {
             @Override
             public int compare(Photo o1, Photo o2) {
@@ -115,11 +101,9 @@ public class SortUtil {
         return resultPhoto;
     }
 
-    public static List<Photo> GetNumPhotoBaseTime(List<Photo> resultPhoto, int num)
-    {
+    public static List<Photo> GetNumPhotoBaseTime(List<Photo> resultPhoto, int num) {
         int len = resultPhoto.size();
-        if(len <= num)
-        {
+        if (len <= num) {
             return resultPhoto;
         }
         List<Photo> SortTimePhoto = SortTime(resultPhoto);
@@ -127,17 +111,14 @@ public class SortUtil {
 
         int index = 1;
         List<Photo> result = new ArrayList<Photo>();
-        for(int i = 0;i<len;i++)
-        {
+        for (int i = 0; i < len; i++) {
             Photo tmp = SortTimePhoto.get(i);
             String TmpTime = DateToStringDay(tmp.getCreateTime());
-            if(CurTime.compareTo(TmpTime) != 0)
-            {
+            if (CurTime.compareTo(TmpTime) != 0) {
                 CurTime = TmpTime;
                 index++;
             }
-            if(index > num)
-            {
+            if (index > num) {
                 break;
             }
             result.add(tmp);
@@ -146,43 +127,36 @@ public class SortUtil {
 
     }
 
-    public static List<Photo> GetTimePhoto(List<Photo> AllPhoto,String time)
-    {
+    public static List<Photo> GetTimePhoto(List<Photo> AllPhoto, String time) {
         int len = AllPhoto.size();
         List<Photo> result = new ArrayList<Photo>();
-        for(int i = 0;i<len;i++)
-        {
+        for (int i = 0; i < len; i++) {
             Photo tmp = AllPhoto.get(i);
             String TmpTime = DateToStringDay(tmp.getCreateTime());
 
-            if(TmpTime.compareTo(time) == 0)
-            {
+            if (TmpTime.compareTo(time) == 0) {
                 result.add(tmp);
             }
         }
         return result;
     }
 
-    public static List<List<Photo>> GetEveryTimePhoto(List<Photo> SortTimePhoto)
-    {
+    public static List<List<Photo>> GetEveryTimePhoto(List<Photo> SortTimePhoto) {
         List<List<Photo>> result = new ArrayList<List<Photo>>();
         String curTime = DateToStringDay(SortTimePhoto.get(0).getCreateTime());
 
         int len = SortTimePhoto.size();
         int index = 0;
 
-        while(index < len)
-        {
+        while (index < len) {
             List<Photo> tmp = new ArrayList<Photo>();
-            while(index<len && curTime.compareTo(DateToStringDay(SortTimePhoto.get(index).getCreateTime())) == 0)
-            {
+            while (index < len && curTime.compareTo(DateToStringDay(SortTimePhoto.get(index).getCreateTime())) == 0) {
                 tmp.add(SortTimePhoto.get(index));
                 index++;
 
             }
             result.add(tmp);
-            if(index < len)
-            {
+            if (index < len) {
                 curTime = DateToStringDay(SortTimePhoto.get(index).getCreateTime());
             }
         }

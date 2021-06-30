@@ -10,6 +10,7 @@ import cn.tp.entities.vo.PhotoDisplayVo;
 import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
+import cn.tp.repositories.PhotoTypeRepository;
 import cn.tp.utils.FileUtil;
 import cn.tp.utils.OpenCVUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -59,13 +60,16 @@ public class PhotoService {
 
     private final ClusteringRepository clusteringRepository;
 
+    private final PhotoTypeRepository photoTypeRepository;
+
     private final FaceService faceService;
 
-    public PhotoService(PhotoRepository photoRepository, FaceService faceService, FaceClusteringRepository faceClusteringRepository, ClusteringRepository clusteringRepository) {
+    public PhotoService(PhotoRepository photoRepository, FaceService faceService, FaceClusteringRepository faceClusteringRepository, ClusteringRepository clusteringRepository, PhotoTypeRepository photoTypeRepository) {
         this.faceClusteringRepository = faceClusteringRepository;
         this.photoRepository = photoRepository;
         this.faceService = faceService;
         this.clusteringRepository = clusteringRepository;
+        this.photoTypeRepository = photoTypeRepository;
     }
 
     //如果这张图的人脸个数大于10 不进行聚类 -> 归为群像
@@ -157,7 +161,7 @@ public class PhotoService {
                 photo.setColorScore(colorScore);
                 photoRepository.save(photo);
             } else {
-                String type = getPhotoType(userId, image);
+                String type = getPhotoType(getPhotoType(userId, image));
                 photo.setType(type);
                 photo.setFaceScore(String.valueOf(faceNum * 10));
                 photo.setPosition(photoSavePosition);
@@ -218,8 +222,17 @@ public class PhotoService {
         return photoDisplayList;
     }
 
-    public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) throws Exception {
+    public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) {
         List<Photo> photoList = photoRepository.findPhotoByUserIdAndCreateTime(userId, date);
+        return getPhotoDisplayList(photoList);
+    }
+
+    public List<PhotoDisplayVo> findOneTypeAllPhotosByUserId(String type, Long userId) {
+        List<Photo> photoList = photoRepository.findPhotoByTypeAndUserId(type, userId);
+        return getPhotoDisplayList(photoList);
+    }
+
+    private List<PhotoDisplayVo> getPhotoDisplayList(List<Photo> photoList) {
         List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
         photoList.forEach(photo -> {
             String position = photo.getPosition();
@@ -237,10 +250,6 @@ public class PhotoService {
             }
         });
         return photoDisplayList;
-    }
-
-    public List<Photo> findOneTypeAllPhotosByUserId(String type, Long userId) {
-        return photoRepository.findPhotoByTypeAndUserId(type, userId);
     }
 
     public List<PhotoDateAndSorce> findAllTimesEightPhotoByUserId(Long userId) {
@@ -267,9 +276,22 @@ public class PhotoService {
         List<HashMap<String, String>> photoList = new ArrayList<>();
         photoRepository.findAllTypeOnePhotoByUserId(userId).forEach(photo -> {
             HashMap<String, String> oneTypePhoto = new HashMap<>();
-            oneTypePhoto.put(photo.getType(), photo.getPosition());
+            oneTypePhoto.put("type", photo.getType());
+            oneTypePhoto.put("position", photo.getPosition());
             photoList.add(oneTypePhoto);
         });
         return photoList;
+    }
+
+    private String getPhotoType(String input) {
+        String[] typeList = input.split(",");
+        String mainType = "其他";
+        for (String type : typeList) {
+            if (!mainType.equals("其他")) return mainType;
+            if (photoTypeRepository.findPhotoTypesByTypeListLike(type).size() > 0) {
+                mainType = photoTypeRepository.findPhotoTypesByTypeListLike(type).get(0).getMainType();
+            }
+        }
+        return mainType;
     }
 }
