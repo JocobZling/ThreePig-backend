@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -87,12 +88,21 @@ public class FaceService {
             return String.valueOf(response.getCommonResult().get("faceId"));
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
+            return "error";
         }
     }
 
     public List<FaceClustering> getAllClusteringOneFaceByUserId(Long userId) {
         return faceClusteringRepository.findOneFaceClustering(userId);
+    }
+
+    public List<FaceClustering> getEightClusteringOneFaceByUserId(Long userId) {
+        List<FaceClustering> results = new ArrayList<>();
+        getAllClusteringOneFaceByUserId(userId).forEach(faceClustering -> {
+            if (results.size() <= 8)
+                results.add(faceClustering);
+        });
+        return results;
     }
 
     public List<Photo> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {

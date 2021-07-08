@@ -86,7 +86,7 @@ public class PhotoService {
     //与所有该用户上传的小脸进行比对，比对分值高为？以上的分为一个类，若无则创建一个新的类
     public void savePhotoToFile(MultipartFile[] files, Long userId) throws Exception {
         String airSetId = userCenterService.findAirSetIdByUserId(userId);
-        assert files != null || files.length >= 1;
+        assert files != null;
         for (MultipartFile file : files) {
             String photoSavePosition = imageUrl + Objects.requireNonNull(FileUtil.saveFile(file, photoAddr)).get(0);
             String photoAddrPath = Objects.requireNonNull(FileUtil.saveFile(file, photoAddr)).get(1);
@@ -102,25 +102,17 @@ public class PhotoService {
             if (faceNum > 0 && faceNum <= 10) {
                 photo.setType("人物");
                 photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoSavePosition);
-                photo.setUserId(userId);
-                photo.setColorScore(colorScore);
-                photoRepository.save(photo);
-                //获取一张图中所有的人脸faceDetectRectangleArea
                 ArrayList<?> faceDetectDetailList = (ArrayList<?>) response.get("faceDetectDetailList");
-                // ArrayList<String> positions = new ArrayList<>();
                 List<FaceClustering> faceClusteringList = faceService.getAllClusteringOneFaceByUserId(userId);
-                faceDetectDetailList.forEach(faceDetect -> {
-                    Map<?, ?> detect = (Map<?, ?>) faceDetect;
-                    Map<?, ?> faceDetectRectangleArea = (Map<?, ?>) detect.get("faceDectectRectangleArea");
+                //对该位置人脸进行切割
+                // OpenCVUtil.findAndCutFace(photoAddrPath, faceAddrPath);
+                faceDetectDetailList.stream().map(faceDetect -> (Map<?, ?>) faceDetect).map(detect -> (Map<?, ?>) detect.get("faceDectectRectangleArea")).forEach(faceDetectRectangleArea -> {
                     double lx = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("upperLeftX")));
                     double ly = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("upperLeftY")));
                     double rx = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("lowerRightX")));
                     double ry = Double.parseDouble(String.valueOf(faceDetectRectangleArea.get("lowerRightY")));
-                    //对该位置人脸进行切割
                     String faceName = userId + "_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10) + "_face.png";
                     String faceAddrPath = faceAddr + faceName;
-                    // OpenCVUtil.findAndCutFace(photoAddrPath, faceAddrPath);
                     try {
                         OpenCVUtil.cutPhotoFace(lx, ly, rx, ry, photoAddrPath, faceAddrPath);
                         //positions.add(faceAddrPath);
@@ -133,6 +125,9 @@ public class PhotoService {
                     faceClustering.setUserId(userId);
                     if (faceClusteringList.size() > 0) {
                         Map<?, ?> result = faceService.searchFace(faceAddrPath, Integer.parseInt(airSetId));
+                        if (result == null) {
+                            return;
+                        }
                         if (Double.parseDouble(String.valueOf(result.get("confidence"))) > 0.6) {
                             int faceId = Double.valueOf(String.valueOf(result.get("faceId"))).intValue();
                             Long clusteringId = faceService.findFaceClusteringByFaceId(faceId).getClusteringId();
@@ -143,6 +138,8 @@ public class PhotoService {
                         } else {
                             // 置信度不够 -> 设置为新的
                             String faceId = faceService.addFaceToAirSet(Integer.parseInt(airSetId), faceAddrPath, faceName);
+                            if (faceId.equals("error"))
+                                return;
                             Integer airFaceId = Double.valueOf(faceId).intValue();
                             faceClustering.setAirFaceId(String.valueOf(airFaceId));
                             Clustering clustering = new Clustering();
@@ -152,6 +149,8 @@ public class PhotoService {
                         }
                     } else {
                         String faceId = faceService.addFaceToAirSet(Integer.parseInt(airSetId), faceAddrPath, faceName);
+                        if (faceId.equals("error"))
+                            return;
                         Integer airFaceId = Double.valueOf(faceId).intValue();
                         faceClustering.setAirFaceId(String.valueOf(airFaceId));
                         Clustering clustering = new Clustering();
@@ -161,55 +160,18 @@ public class PhotoService {
                     }
                     faceClusteringRepository.save(faceClustering);
                 });
-//                positions.forEach(position -> {
-//                    FaceClustering faceClustering = new FaceClustering();
-//                    faceClustering.setPosition(position);
-//                    faceClustering.setPhotoId(photo.getId());
-//                    faceClustering.setUserId(userId);
-//                    if (faceClusteringList.size() > 0) {
-//                        List<FaceCompareConfidenceAndClusterIdBo> score = new ArrayList<>();
-//                        faceClusteringList.forEach(face -> {
-//                                    long clusteringId = face.getClusteringId();
-//                                    FaceCompareConfidenceAndClusterIdBo faceCompareConfidenceAndClusterIdBo = new FaceCompareConfidenceAndClusterIdBo();
-//                                    faceCompareConfidenceAndClusterIdBo.setClusterId(clusteringId);
-//                                    faceCompareConfidenceAndClusterIdBo.setFaceCompareConfidence(faceService.compareFace(position, face.getPosition()));
-//                                    score.add(faceCompareConfidenceAndClusterIdBo);
-//                                }
-//                        );
-//                        score.sort(Comparator.comparing(FaceCompareConfidenceAndClusterIdBo::getFaceCompareConfidence).thenComparing(FaceCompareConfidenceAndClusterIdBo::getClusterId));
-//                        if (score.get(score.size() - 1).getFaceCompareConfidence() < 0.6) {
-//                            Clustering clustering = new Clustering();
-//                            clustering.setUserId(userId);
-//                            clusteringRepository.save(clustering);
-//                            faceClustering.setClusteringId(clustering.getId());
-//                        } else {
-//                            faceClustering.setClusteringId(score.get(score.size() - 1).getClusterId());
-//                        }
-//                    } else {
-//                        Clustering clustering = new Clustering();
-//                        clustering.setUserId(userId);
-//                        clusteringRepository.save(clustering);
-//                        faceClustering.setClusteringId(clustering.getId());
-//                    }
-//                    faceClusteringRepository.save(faceClustering);
-//                });
-
             } else if (faceNum > 10) {
                 photo.setType("群像");
                 photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoSavePosition);
-                photo.setUserId(userId);
-                photo.setColorScore(colorScore);
-                photoRepository.save(photo);
             } else {
                 String type = getPhotoType(getPhotoType(userId, image));
                 photo.setType(type);
-                photo.setFaceScore(String.valueOf(faceNum * 10));
-                photo.setPosition(photoSavePosition);
-                photo.setUserId(userId);
-                photo.setColorScore(colorScore);
-                photoRepository.save(photo);
+                photo.setFaceScore("0");
             }
+            photo.setColorScore(colorScore);
+            photo.setPosition(photoSavePosition);
+            photo.setUserId(userId);
+            photoRepository.save(photo);
         }
 
     }

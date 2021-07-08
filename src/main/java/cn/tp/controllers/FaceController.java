@@ -24,6 +24,11 @@ public class FaceController {
         return ResponseEntity.ok(faceService.getAllClusteringOneFaceByUserId(userId));
     }
 
+    @GetMapping(value = "/eight/one/{userId}")
+    public ResponseEntity<?> getEightFaceOnePhoto(@PathVariable Long userId) {
+        return ResponseEntity.ok(faceService.getEightClusteringOneFaceByUserId(userId));
+    }
+
     @GetMapping(value = "/oneKlass/all/{userId}")
     public ResponseEntity<?> getOneKlassAllPhoto(@PathVariable Long userId, @PathVariable Long clusteringId) {
         return ResponseEntity.ok(faceService.findOneKlassAllPhotoByUserIdAndClusteringId(userId, clusteringId));
