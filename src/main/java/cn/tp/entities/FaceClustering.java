@@ -25,6 +25,8 @@ public class FaceClustering {
     private Long clusteringId;
     @JsonProperty("userId")
     private Long userId;
+    @JsonProperty("airFaceId")
+    private String airFaceId;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime = new Date();
 }

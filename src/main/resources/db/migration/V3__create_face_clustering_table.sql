@@ -4,6 +4,7 @@ CREATE TABLE `faceClustering` (
     `position` varchar(200),
     `clusteringId` int(11),
     `userId` int(11),
+    `airFaceId` varchar(200),
     `createTime` TIMESTAMP default current_timestamp,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

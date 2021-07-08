@@ -13,4 +13,6 @@ public interface FaceClusteringRepository extends JpaRepository<FaceClustering, 
     @Query(value = "select *,max(position) from FaceClustering where clusteringId in(select id from Clustering where userId = ?1)group by clusteringId", nativeQuery = true)
     List<FaceClustering> findOneFaceClustering(Long userId);
 
+    FaceClustering findTopByAirFaceId(String airFaceId);
+
 }

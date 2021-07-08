@@ -4,5 +4,6 @@ CREATE TABLE `user` (
     `email`VARCHAR(200),
     `password` VARCHAR(200),
     `createTime` TIMESTAMP default current_timestamp,
+    `airSetId` VARCHAR(200),
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -10,16 +10,20 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
 public class UserCenterService {
 
     private final UserRepository userRepository;
+    private final FaceService faceService;
 
     @Autowired
-    public UserCenterService(UserRepository userRepository) {
+    public UserCenterService(UserRepository userRepository, FaceService faceService) {
         this.userRepository = userRepository;
+        this.faceService = faceService;
     }
 
     public HashMap<String, Object> findUserByEmailAndPasswordOrThrow(String email, String password) throws BusinessException, UnsupportedEncodingException {
@@ -40,6 +44,8 @@ public class UserCenterService {
         user.setEmail(info.getEmail());
         user.setPassword(info.getPassword());
         user.setName(info.getName());
+        String faceSetId = faceService.createFaceSet(UUID.randomUUID().toString().replaceAll("-", "").substring(0, 10));
+        user.setAirSetId(String.valueOf(Double.valueOf(faceSetId).intValue()));
         return userRepository.save(user);
     }
 
@@ -48,5 +54,9 @@ public class UserCenterService {
         return user.size() != 0;
     }
 
+    public String findAirSetIdByUserId(Long userId) throws BusinessException {
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException("用户不存在"));
+        return user.getAirSetId();
+    }
 
 }

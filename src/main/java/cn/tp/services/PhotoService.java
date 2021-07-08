@@ -64,20 +64,28 @@ public class PhotoService {
 
     private final FaceService faceService;
 
-    public PhotoService(PhotoRepository photoRepository, FaceService faceService, FaceClusteringRepository faceClusteringRepository, ClusteringRepository clusteringRepository, PhotoTypeRepository photoTypeRepository) {
+    private final UserCenterService userCenterService;
+
+
+    public PhotoService(PhotoRepository photoRepository, FaceService faceService, FaceClusteringRepository faceClusteringRepository, ClusteringRepository clusteringRepository, PhotoTypeRepository photoTypeRepository, UserCenterService userCenterService) {
         this.faceClusteringRepository = faceClusteringRepository;
         this.photoRepository = photoRepository;
         this.faceService = faceService;
         this.clusteringRepository = clusteringRepository;
         this.photoTypeRepository = photoTypeRepository;
+        this.userCenterService = userCenterService;
     }
 
     //如果这张图的人脸个数大于10 不进行聚类 -> 归为群像
+    // 如果 faceClustering 表为空 直接添加 创建 不调用 search
+    // 切割人脸 -> 调用人脸search -> 返回匹配值低于70 or null -> 归为新类 -> 保存到人脸库里 -> 保存到本地
+    // 返回值高于70 -> 获取faceId -> 去表里查到clusterId ->保存
     //如果faceClustering表不为空，调用faceClustering中的所有脸进行1v1比较，得出最大的分数就将该小脸归为该类，并记录该clustering
     //若最大分数小于多少？就将其定义一个新的clustering
     //保存到faceClustering表中
     //与所有该用户上传的小脸进行比对，比对分值高为？以上的分为一个类，若无则创建一个新的类
     public void savePhotoToFile(MultipartFile[] files, Long userId) throws Exception {
+        String airSetId = userCenterService.findAirSetIdByUserId(userId);
         assert files != null || files.length >= 1;
         for (MultipartFile file : files) {
             String photoSavePosition = imageUrl + Objects.requireNonNull(FileUtil.saveFile(file, photoAddr)).get(0);
@@ -100,7 +108,7 @@ public class PhotoService {
                 photoRepository.save(photo);
                 //获取一张图中所有的人脸faceDetectRectangleArea
                 ArrayList<?> faceDetectDetailList = (ArrayList<?>) response.get("faceDetectDetailList");
-                ArrayList<String> positions = new ArrayList<>();
+                // ArrayList<String> positions = new ArrayList<>();
                 List<FaceClustering> faceClusteringList = faceService.getAllClusteringOneFaceByUserId(userId);
                 faceDetectDetailList.forEach(faceDetect -> {
                     Map<?, ?> detect = (Map<?, ?>) faceDetect;
@@ -115,36 +123,37 @@ public class PhotoService {
                     // OpenCVUtil.findAndCutFace(photoAddrPath, faceAddrPath);
                     try {
                         OpenCVUtil.cutPhotoFace(lx, ly, rx, ry, photoAddrPath, faceAddrPath);
-                        positions.add(faceAddrPath);
+                        //positions.add(faceAddrPath);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                });
-                positions.forEach(position -> {
                     FaceClustering faceClustering = new FaceClustering();
-                    faceClustering.setPosition(position);
+                    faceClustering.setPosition(imageUrl + faceName);
                     faceClustering.setPhotoId(photo.getId());
                     faceClustering.setUserId(userId);
                     if (faceClusteringList.size() > 0) {
-                        List<FaceCompareConfidenceAndClusterIdBo> score = new ArrayList<>();
-                        faceClusteringList.forEach(face -> {
-                                    long clusteringId = face.getClusteringId();
-                                    FaceCompareConfidenceAndClusterIdBo faceCompareConfidenceAndClusterIdBo = new FaceCompareConfidenceAndClusterIdBo();
-                                    faceCompareConfidenceAndClusterIdBo.setClusterId(clusteringId);
-                                    faceCompareConfidenceAndClusterIdBo.setFaceCompareConfidence(faceService.compareFace(position, face.getPosition()));
-                                    score.add(faceCompareConfidenceAndClusterIdBo);
-                                }
-                        );
-                        score.sort(Comparator.comparing(FaceCompareConfidenceAndClusterIdBo::getFaceCompareConfidence).thenComparing(FaceCompareConfidenceAndClusterIdBo::getClusterId));
-                        if (score.get(score.size() - 1).getFaceCompareConfidence() < 0.6) {
+                        Map<?, ?> result = faceService.searchFace(faceAddrPath, Integer.parseInt(airSetId));
+                        if (Double.parseDouble(String.valueOf(result.get("confidence"))) > 0.6) {
+                            int faceId = Double.valueOf(String.valueOf(result.get("faceId"))).intValue();
+                            Long clusteringId = faceService.findFaceClusteringByFaceId(faceId).getClusteringId();
+                            faceClustering.setClusteringId(clusteringId);
+                            String newFaceId = faceService.addFaceToAirSet(Integer.parseInt(airSetId), faceAddrPath, faceName);
+                            Integer airFaceId = Double.valueOf(newFaceId).intValue();
+                            faceClustering.setAirFaceId(String.valueOf(airFaceId));
+                        } else {
+                            // 置信度不够 -> 设置为新的
+                            String faceId = faceService.addFaceToAirSet(Integer.parseInt(airSetId), faceAddrPath, faceName);
+                            Integer airFaceId = Double.valueOf(faceId).intValue();
+                            faceClustering.setAirFaceId(String.valueOf(airFaceId));
                             Clustering clustering = new Clustering();
                             clustering.setUserId(userId);
                             clusteringRepository.save(clustering);
                             faceClustering.setClusteringId(clustering.getId());
-                        } else {
-                            faceClustering.setClusteringId(score.get(score.size() - 1).getClusterId());
                         }
                     } else {
+                        String faceId = faceService.addFaceToAirSet(Integer.parseInt(airSetId), faceAddrPath, faceName);
+                        Integer airFaceId = Double.valueOf(faceId).intValue();
+                        faceClustering.setAirFaceId(String.valueOf(airFaceId));
                         Clustering clustering = new Clustering();
                         clustering.setUserId(userId);
                         clusteringRepository.save(clustering);
@@ -152,6 +161,38 @@ public class PhotoService {
                     }
                     faceClusteringRepository.save(faceClustering);
                 });
+//                positions.forEach(position -> {
+//                    FaceClustering faceClustering = new FaceClustering();
+//                    faceClustering.setPosition(position);
+//                    faceClustering.setPhotoId(photo.getId());
+//                    faceClustering.setUserId(userId);
+//                    if (faceClusteringList.size() > 0) {
+//                        List<FaceCompareConfidenceAndClusterIdBo> score = new ArrayList<>();
+//                        faceClusteringList.forEach(face -> {
+//                                    long clusteringId = face.getClusteringId();
+//                                    FaceCompareConfidenceAndClusterIdBo faceCompareConfidenceAndClusterIdBo = new FaceCompareConfidenceAndClusterIdBo();
+//                                    faceCompareConfidenceAndClusterIdBo.setClusterId(clusteringId);
+//                                    faceCompareConfidenceAndClusterIdBo.setFaceCompareConfidence(faceService.compareFace(position, face.getPosition()));
+//                                    score.add(faceCompareConfidenceAndClusterIdBo);
+//                                }
+//                        );
+//                        score.sort(Comparator.comparing(FaceCompareConfidenceAndClusterIdBo::getFaceCompareConfidence).thenComparing(FaceCompareConfidenceAndClusterIdBo::getClusterId));
+//                        if (score.get(score.size() - 1).getFaceCompareConfidence() < 0.6) {
+//                            Clustering clustering = new Clustering();
+//                            clustering.setUserId(userId);
+//                            clusteringRepository.save(clustering);
+//                            faceClustering.setClusteringId(clustering.getId());
+//                        } else {
+//                            faceClustering.setClusteringId(score.get(score.size() - 1).getClusterId());
+//                        }
+//                    } else {
+//                        Clustering clustering = new Clustering();
+//                        clustering.setUserId(userId);
+//                        clusteringRepository.save(clustering);
+//                        faceClustering.setClusteringId(clustering.getId());
+//                    }
+//                    faceClusteringRepository.save(faceClustering);
+//                });
 
             } else if (faceNum > 10) {
                 photo.setType("群像");
@@ -237,7 +278,6 @@ public class PhotoService {
         photoList.forEach(photo -> {
             String position = photo.getPosition();
             String path = position.split("/images/")[1];
-            System.out.println(path);
             try {
                 List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
                 PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();

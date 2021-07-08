@@ -32,5 +32,5 @@ server:
   port: 8080
 
 spring.mvc.static-path-pattern: /images/**
-spring.resources.static-locations: file:D://ThreePigProject/photo/
+spring.resources.static-locations: file:D://ThreePigProject/photo/,file:D://ThreePigProject/face/
 
