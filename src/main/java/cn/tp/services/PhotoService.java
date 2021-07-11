@@ -197,7 +197,7 @@ public class PhotoService {
     }
 
     public List<PhotoDisplayVo> findAllDaysPhotosByUserId(Long userId) {
-        List<Photo> photoList = photoRepository.findPhotoByUserId(userId);
+        List<Photo> photoList = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         return FaceService.getPhotoDisplayVos(photoList, photoAddr);
     }
 
@@ -213,7 +213,7 @@ public class PhotoService {
 
 
     public List<PhotoDateAndSorce> findAllTimesEightPhotoByUserId(Long userId) {
-        List<Photo> photoList = photoRepository.findPhotoByUserId(userId);
+        List<Photo> photoList = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         HashSet<String> date = new HashSet<>();
         List<PhotoDateAndSorce> result = new ArrayList<>();
         photoList.forEach(photo -> {

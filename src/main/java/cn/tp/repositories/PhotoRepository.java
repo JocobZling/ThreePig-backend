@@ -14,13 +14,10 @@ import java.util.Set;
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
     List<Photo> findPhotoByTypeAndUserId(String type, Long userId);
 
-    List<Photo> findPhotoByUserId(Long userId);
+    List<Photo> findPhotoByUserIdOrderByCreateTimeDesc(Long userId);
 
-    @Query(value = "select * from photo where createTime like %?2% and userId = ?1", nativeQuery = true)
+    @Query(value = "select * from photo where createTime like %?2% and userId = ?1 order by createTime desc", nativeQuery = true)
     List<Photo> findPhotoByUserIdAndCreateTime(Long userId, String time);
-
-    @Query(value = "select createTime from photo", nativeQuery = true)
-    HashSet<String> findAllCreateTime();
 
     @Query(value = "select *,max(position) from photo where type in(select mainType from photoType)group by type", nativeQuery = true)
     List<Photo> findAllTypeOnePhotoByUserId(Long userId);

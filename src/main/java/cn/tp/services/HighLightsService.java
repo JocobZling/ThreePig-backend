@@ -23,7 +23,7 @@ public class HighLightsService {
 
     public List<String> getTopPerson(Long userId, int num, boolean flag) {
         List<String> result = new ArrayList<String>();
-        List<Photo> resultPhoto = photoRepository.findPhotoByUserId(userId);
+        List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         if (resultPhoto.size() == 0) {
             return result;
         }
@@ -49,7 +49,7 @@ public class HighLightsService {
     // num是指定拿出最近几天的数据 flag是指定facescore排序还是allscore排序 photoNum是指定最后取出多少张
     public List<String> getRecentTop(Long userId, int num, boolean flag, int photoNum) {
         List<String> result = new ArrayList<String>();
-        List<Photo> resultPhoto = photoRepository.findPhotoByUserId(userId);
+        List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         //拿到最近num 天的数据 不够num全拿来
         List<Photo> RencntList = SortUtil.GetNumPhotoBaseTime(resultPhoto, num);
         if (RencntList.size() == 0) {
@@ -77,7 +77,7 @@ public class HighLightsService {
 
     public List<String> getTimeTop(long userId, String time, int num) {
         List<String> result = new ArrayList<String>();
-        List<Photo> resultPhoto = photoRepository.findPhotoByUserId(userId);
+        List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         List<Photo> timePhoto = SortUtil.GetTimePhoto(resultPhoto, time);
         if (timePhoto.size() == 0) {
             return result;
@@ -104,7 +104,7 @@ public class HighLightsService {
 
         List<HashMap<String, String>> res = new ArrayList<HashMap<String, String>>();
 
-        List<Photo> resultPhoto = photoRepository.findPhotoByUserId(userId);
+        List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         if (resultPhoto.size() == 0) {
             return res;
         }
@@ -115,7 +115,8 @@ public class HighLightsService {
         for (List<Photo> oneTimePhoto : everyTimePhoto) {
             HashMap<String, String> TimePosition = new HashMap<String, String>();
             List<Photo> tmp = SortUtil.SortPhoto(oneTimePhoto, false);
-            TimePosition.put(SortUtil.DateToStringDay(tmp.get(0).getCreateTime()), tmp.get(0).getPosition());
+            TimePosition.put("date", SortUtil.DateToStringDay(tmp.get(0).getCreateTime()));
+            TimePosition.put("src", tmp.get(0).getPosition());
             res.add(TimePosition);
         }
         return res;
@@ -144,7 +145,7 @@ public class HighLightsService {
 
 
     public List<Photo> test(Long userId) {
-        return photoRepository.findPhotoByUserId(userId);
+        return photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
     }
 
 }

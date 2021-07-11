@@ -27,18 +27,17 @@ public class HighlightsController {
     private final HighLightsService highLightsService;
 
     @Autowired
-    public HighlightsController(PhotoService photoService,HighLightsService highLightsService) {
+    public HighlightsController(PhotoService photoService, HighLightsService highLightsService) {
         this.photoService = photoService;
         this.highLightsService = highLightsService;
     }
 
     //封面一张 所有
-    @GetMapping(value="/{userId}")
-    public ResponseEntity<?> getHighlightPageContent(@PathVariable Long userId){
+    @GetMapping(value = "/{userId}")
+    public ResponseEntity<?> getHighlightPageContent(@PathVariable Long userId) {
         // 先拿到每天里最精彩的第一张
-        List<HashMap<String,String>> oneTimeOnePhoto = highLightsService.getEverytimePhoto(userId);
-        if(oneTimeOnePhoto.size() == 0)
-        {
+        List<HashMap<String, String>> oneTimeOnePhoto = highLightsService.getEverytimePhoto(userId);
+        if (oneTimeOnePhoto.size() == 0) {
             return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
         }
         // 在拿到person 分数最好的一张
@@ -51,11 +50,11 @@ public class HighlightsController {
         String bestRecentA = highLightsService.BestRecentAll(userId);
 
         HashMap<String, TimeAndPosition> result = new HashMap<String, TimeAndPosition>();
-        result.put("EveryTime",new TimeAndPosition(oneTimeOnePhoto,null));
-        result.put("BestPerson",new TimeAndPosition(null,bestP));
-        result.put("BestAll",new TimeAndPosition(null,bestA));
-        result.put("BestRecentPerson",new TimeAndPosition(null,bestRecentP));
-        result.put("BestRecentAll",new TimeAndPosition(null,bestRecentA));
+        result.put("EveryTime", new TimeAndPosition(oneTimeOnePhoto, null));
+        result.put("BestPerson", new TimeAndPosition(null, bestP));
+        result.put("BestAll", new TimeAndPosition(null, bestA));
+        result.put("BestRecentPerson", new TimeAndPosition(null, bestRecentP));
+        result.put("BestRecentAll", new TimeAndPosition(null, bestRecentA));
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -67,14 +66,13 @@ public class HighlightsController {
 
     //拿出用户这一天的所有分数的top10
     @GetMapping(value = "/everyTimes/{createTime}/all/{userId}")
-    public ResponseEntity<?> getEveryTimesAllHighlight(@PathVariable Long userId,@PathVariable String createTime) {
+    public ResponseEntity<?> getEveryTimesAllHighlight(@PathVariable Long userId, @PathVariable String createTime) {
         int num = 10;
-        List<String> result = highLightsService.getTimeTop(userId,createTime,num);
-        if(result.size() == 0)
-        {
-            return new ResponseEntity<>("没有当日图片！",HttpStatus.OK);
+        List<String> result = highLightsService.getTimeTop(userId, createTime, num);
+        if (result.size() == 0) {
+            return new ResponseEntity<>("没有当日图片！", HttpStatus.OK);
         }
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     //拿出用户所有的top person_score 10
@@ -87,9 +85,8 @@ public class HighlightsController {
         int num = 10;
         //flag = true 代表只按照faceScore排序
         boolean flag = true;
-        List<String> result = highLightsService.getTopPerson(userId,num,flag);
-        if(result.size() == 0)
-        {
+        List<String> result = highLightsService.getTopPerson(userId, num, flag);
+        if (result.size() == 0) {
             return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -105,9 +102,8 @@ public class HighlightsController {
         int num = 10;
         //flag = false 代表按照总分数排序
         boolean flag = false;
-        List<String> result = highLightsService.getTopPerson(userId,num,flag);
-        if(result.size() == 0)
-        {
+        List<String> result = highLightsService.getTopPerson(userId, num, flag);
+        if (result.size() == 0) {
             return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -121,13 +117,12 @@ public class HighlightsController {
         int photoNum = 20; //图片数量
         //flag = true 代表只按照faceScore排序
         boolean flag = true;
-        List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
-        if(result.size() == 0)
-        {
+        List<String> result = highLightsService.getRecentTop(userId, num, flag, photoNum);
+        if (result.size() == 0) {
             return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     //拿出用户最近的五天top all_scores top 20
@@ -137,28 +132,27 @@ public class HighlightsController {
         int photoNum = 20; //图片数量
         //flag = flase 代表只按照所有的分数排序
         boolean flag = false;
-        List<String> result = highLightsService.getRecentTop(userId,num,flag,photoNum);
-        if(result.size() == 0)
-        {
+        List<String> result = highLightsService.getRecentTop(userId, num, flag, photoNum);
+        if (result.size() == 0) {
             return new ResponseEntity<>("您还没有上传图片！", HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
 
-    @GetMapping(value="test/{userId}")
+    @GetMapping(value = "test/{userId}")
     public ResponseEntity<?> test(@PathVariable Long userId) throws ParseException {
         List<Photo> result = highLightsService.test(userId);
         Date createTime1 = result.get(0).getCreateTime();
         Date createTime2 = result.get(2).getCreateTime();
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        String startDateStr=df.format(createTime1);
-        Date startDate=df.parse(startDateStr);
+        String startDateStr = df.format(createTime1);
+        Date startDate = df.parse(startDateStr);
         System.out.println(startDate);
         System.out.println(startDateStr);
         System.out.println(createTime2);
-        return new ResponseEntity<>(result,HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 }

@@ -77,7 +77,7 @@ public class SortUtil {
     }
 
     public static String DateToStringDay(Date time) {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
         String strTime = df.format(time);
         return strTime;
     }
