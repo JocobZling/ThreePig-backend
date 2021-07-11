@@ -1,7 +1,6 @@
 package cn.tp.controllers;
 
 import cn.tp.services.FaceService;
-import cn.tp.services.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/api/face")
 public class FaceController {
+
     private final FaceService faceService;
+
 
     @Autowired
     public FaceController(FaceService faceService) {
@@ -29,7 +30,7 @@ public class FaceController {
         return ResponseEntity.ok(faceService.getEightClusteringOneFaceByUserId(userId));
     }
 
-    @GetMapping(value = "/oneKlass/all/{userId}")
+    @GetMapping(value = "/oneKlass/{clusteringId}/all/{userId}")
     public ResponseEntity<?> getOneKlassAllPhoto(@PathVariable Long userId, @PathVariable Long clusteringId) {
         return ResponseEntity.ok(faceService.findOneKlassAllPhotoByUserIdAndClusteringId(userId, clusteringId));
     }

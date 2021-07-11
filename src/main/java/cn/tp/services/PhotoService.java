@@ -76,14 +76,6 @@ public class PhotoService {
         this.userCenterService = userCenterService;
     }
 
-    //如果这张图的人脸个数大于10 不进行聚类 -> 归为群像
-    // 如果 faceClustering 表为空 直接添加 创建 不调用 search
-    // 切割人脸 -> 调用人脸search -> 返回匹配值低于70 or null -> 归为新类 -> 保存到人脸库里 -> 保存到本地
-    // 返回值高于70 -> 获取faceId -> 去表里查到clusterId ->保存
-    //如果faceClustering表不为空，调用faceClustering中的所有脸进行1v1比较，得出最大的分数就将该小脸归为该类，并记录该clustering
-    //若最大分数小于多少？就将其定义一个新的clustering
-    //保存到faceClustering表中
-    //与所有该用户上传的小脸进行比对，比对分值高为？以上的分为一个类，若无则创建一个新的类
     public void savePhotoToFile(MultipartFile[] files, Long userId) throws Exception {
         String airSetId = userCenterService.findAirSetIdByUserId(userId);
         assert files != null;
@@ -99,9 +91,14 @@ public class PhotoService {
                 faceNum = 0;
             else
                 faceNum = Double.parseDouble(String.valueOf(response.get("faceNum")));
+            photo.setFaceScore(String.valueOf(faceNum * 10));
+            photo.setColorScore(colorScore);
+            photo.setPosition(photoSavePosition);
+            photo.setUserId(userId);
+            photoRepository.save(photo);
+            Long photoId = photo.getId();
             if (faceNum > 0 && faceNum <= 10) {
                 photo.setType("人物");
-                photo.setFaceScore(String.valueOf(faceNum * 10));
                 ArrayList<?> faceDetectDetailList = (ArrayList<?>) response.get("faceDetectDetailList");
                 List<FaceClustering> faceClusteringList = faceService.getAllClusteringOneFaceByUserId(userId);
                 //对该位置人脸进行切割
@@ -162,18 +159,12 @@ public class PhotoService {
                 });
             } else if (faceNum > 10) {
                 photo.setType("群像");
-                photo.setFaceScore(String.valueOf(faceNum * 10));
             } else {
                 String type = getPhotoType(getPhotoType(userId, image));
                 photo.setType(type);
-                photo.setFaceScore("0");
             }
-            photo.setColorScore(colorScore);
-            photo.setPosition(photoSavePosition);
-            photo.setUserId(userId);
             photoRepository.save(photo);
         }
-
     }
 
     public String getPhotoType(long userId, String image) throws IOException {
@@ -207,52 +198,19 @@ public class PhotoService {
 
     public List<PhotoDisplayVo> findAllDaysPhotosByUserId(Long userId) {
         List<Photo> photoList = photoRepository.findPhotoByUserId(userId);
-        List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
-        photoList.forEach(photo -> {
-            String position = photo.getPosition();
-            String path = position.split("/images/")[1];
-            try {
-                List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
-                PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();
-                photoDisplayVo.setHeight(imageInfo.get(1));
-                photoDisplayVo.setWidth(imageInfo.get(0));
-                photoDisplayVo.setSrc(photo.getPosition());
-                photoDisplayList.add(photoDisplayVo);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        return photoDisplayList;
+        return FaceService.getPhotoDisplayVos(photoList, photoAddr);
     }
 
     public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) {
         List<Photo> photoList = photoRepository.findPhotoByUserIdAndCreateTime(userId, date);
-        return getPhotoDisplayList(photoList);
+        return faceService.getPhotoDisplayList(photoList);
     }
 
     public List<PhotoDisplayVo> findOneTypeAllPhotosByUserId(String type, Long userId) {
         List<Photo> photoList = photoRepository.findPhotoByTypeAndUserId(type, userId);
-        return getPhotoDisplayList(photoList);
+        return faceService.getPhotoDisplayList(photoList);
     }
 
-    private List<PhotoDisplayVo> getPhotoDisplayList(List<Photo> photoList) {
-        List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
-        photoList.forEach(photo -> {
-            String position = photo.getPosition();
-            String path = position.split("/images/")[1];
-            try {
-                List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
-                PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();
-                photoDisplayVo.setHeight(imageInfo.get(1));
-                photoDisplayVo.setWidth(imageInfo.get(0));
-                photoDisplayVo.setSrc(photo.getPosition());
-                photoDisplayList.add(photoDisplayVo);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        return photoDisplayList;
-    }
 
     public List<PhotoDateAndSorce> findAllTimesEightPhotoByUserId(Long userId) {
         List<Photo> photoList = photoRepository.findPhotoByUserId(userId);

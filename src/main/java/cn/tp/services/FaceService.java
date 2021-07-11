@@ -2,20 +2,19 @@ package cn.tp.services;
 
 import cn.tp.entities.FaceClustering;
 import cn.tp.entities.Photo;
-import cn.tp.exceptions.BusinessException;
-import cn.tp.repositories.ClusteringRepository;
+import cn.tp.entities.vo.PhotoDisplayVo;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
 import cn.tp.utils.FaceUtil;
+import cn.tp.utils.FileUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.chinamobile.bcop.api.sdk.ai.core.constant.Region;
 import com.chinamobile.bcop.api.sdk.ai.core.model.CommonJsonObjectResponse;
 import com.chinamobile.bcop.api.sdk.ai.facebody.AiFaceBody;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,14 +23,14 @@ public class FaceService {
 
     private final FaceClusteringRepository faceClusteringRepository;
 
-    private final ClusteringRepository clusteringRepository;
-
     private final PhotoRepository photoRepository;
 
+    @Value("${photoAddr}")
+    private String photoAddr;
 
-    public FaceService(FaceClusteringRepository faceClusteringRepository, ClusteringRepository clusteringRepository, PhotoRepository photoRepository) {
+
+    public FaceService(FaceClusteringRepository faceClusteringRepository, PhotoRepository photoRepository) {
         this.faceClusteringRepository = faceClusteringRepository;
-        this.clusteringRepository = clusteringRepository;
         this.photoRepository = photoRepository;
     }
 
@@ -99,19 +98,44 @@ public class FaceService {
     public List<FaceClustering> getEightClusteringOneFaceByUserId(Long userId) {
         List<FaceClustering> results = new ArrayList<>();
         getAllClusteringOneFaceByUserId(userId).forEach(faceClustering -> {
-            if (results.size() <= 8)
+            if (results.size() <= 7)
                 results.add(faceClustering);
         });
         return results;
     }
 
-    public List<Photo> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
-        return photoRepository.findPhotoByClusteringIdAndUserId(clusteringId, userId);
+    public List<PhotoDisplayVo> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
+        List<Photo> photoList = photoRepository.findPhotoByClusteringIdAndUserId(clusteringId, userId);
+        return getPhotoDisplayList(photoList);
     }
 
     public FaceClustering findFaceClusteringByFaceId(Integer airFaceId) {
         return faceClusteringRepository.findTopByAirFaceId(String.valueOf(airFaceId));
     }
+
+    public List<PhotoDisplayVo> getPhotoDisplayList(List<Photo> photoList) {
+        return getPhotoDisplayVos(photoList, photoAddr);
+    }
+
+    static List<PhotoDisplayVo> getPhotoDisplayVos(List<Photo> photoList, String photoAddr) {
+        List<PhotoDisplayVo> photoDisplayList = new ArrayList<>();
+        photoList.forEach(photo -> {
+            String position = photo.getPosition();
+            String path = position.split("/images/")[1];
+            try {
+                List<String> imageInfo = FileUtil.getPictureSize(photoAddr + path);
+                PhotoDisplayVo photoDisplayVo = new PhotoDisplayVo();
+                photoDisplayVo.setHeight(imageInfo.get(1));
+                photoDisplayVo.setWidth(imageInfo.get(0));
+                photoDisplayVo.setSrc(photo.getPosition());
+                photoDisplayList.add(photoDisplayVo);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return photoDisplayList;
+    }
+
 }
 
 
