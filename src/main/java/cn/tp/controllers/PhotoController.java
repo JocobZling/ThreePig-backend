@@ -34,7 +34,7 @@ public class PhotoController {
         photoService.savePhotoToFile(files, userId);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
+    // 按照日期返回 最近的在最前面
     @GetMapping(value = "/days/all/{userId}")
     public ResponseEntity<?> getAllPhoto(@PathVariable Long userId) {
         return ResponseEntity.ok(photoService.findAllDaysPhotosByUserId(userId));
@@ -50,6 +50,7 @@ public class PhotoController {
         return ResponseEntity.ok(photoService.findOneTypeAllPhotosByUserId(type, userId));
     }
 
+    // 返回来的按日期排序
     @GetMapping(value = "/all/eight/{userId}")
     public ResponseEntity<?> getOneDayEightPhoto(@PathVariable Long userId) {
         return ResponseEntity.ok(photoService.findAllTimesEightPhotoByUserId(userId));

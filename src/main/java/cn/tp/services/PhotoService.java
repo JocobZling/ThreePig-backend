@@ -7,12 +7,14 @@ import cn.tp.entities.bo.FaceCompareConfidenceAndClusterIdBo;
 import cn.tp.entities.bo.UserUploadPhotoBo;
 import cn.tp.entities.vo.PhotoDateAndSorce;
 import cn.tp.entities.vo.PhotoDisplayVo;
+import cn.tp.entities.vo.PhotoTimeDisplay;
 import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
 import cn.tp.repositories.PhotoTypeRepository;
 import cn.tp.utils.FileUtil;
 import cn.tp.utils.OpenCVUtil;
+import cn.tp.utils.SortUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.chinamobile.cmss.sdk.ECloudDefaultClient;
 import com.chinamobile.cmss.sdk.ECloudServerException;
@@ -196,9 +198,51 @@ public class PhotoService {
         return null;
     }
 
-    public List<PhotoDisplayVo> findAllDaysPhotosByUserId(Long userId) {
+    public List<PhotoTimeDisplay> findAllDaysPhotosByUserId(Long userId) {
         List<Photo> photoList = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
-        return FaceService.getPhotoDisplayVos(photoList, photoAddr);
+        HashSet<String> date = new HashSet<>();
+        List<PhotoTimeDisplay> result = new ArrayList<>();
+        photoList.forEach(photo -> {
+            date.add(photo.getCreateTime().toString().split(" ")[0]);
+        });
+        for(String d : date)
+        {
+            List<Photo> tmpPhotoList = new ArrayList<>();
+            PhotoTimeDisplay photoTimeDisplay = new PhotoTimeDisplay();
+            for(Photo photo : photoList)
+            {
+                if(d.compareTo(photo.getCreateTime().toString().split(" ")[0]) == 0)
+                {
+                    tmpPhotoList.add(photo);
+                }
+            }
+            photoTimeDisplay.setDate(d);
+            photoTimeDisplay.setPhotoDisplayVoList(FaceService.getPhotoDisplayVos(tmpPhotoList, photoAddr));
+            result.add(photoTimeDisplay);
+        }
+
+        SortUtil.SortPhotoTimeDisplay(result);
+
+        return result;
+
+
+
+//        photoList.forEach(photo -> {
+//            date.add(photo.getCreateTime().toString().split(" ")[0]);
+//        });
+//        date.forEach(s -> {
+//            PhotoTimeDisplay phototimedisplay = new PhotoTimeDisplay();
+//            phototimedisplay.setDate(s);
+////            List<Photo> photos = new ArrayList<>();
+////            photoList.forEach(photo -> {
+////                if (photo.getCreateTime().toString().split(" ")[0].equals(s)) photos.add(photo);
+////            });
+//            phototimedisplay.setPhotoDisplayVo();
+//            photoDateAndSorce.setPhotoList(photos);
+//            result.add(photoDateAndSorce);
+//        });
+        //这里返回的是List<PhotoDisplayVo>
+       // FaceService.getPhotoDisplayVos(photoList, photoAddr);
     }
 
     public List<PhotoDisplayVo> findOneDaysAllPhotosByUserId(Long userId, String date) {
@@ -229,6 +273,9 @@ public class PhotoService {
             photoDateAndSorce.setPhotoList(photos);
             result.add(photoDateAndSorce);
         });
+        //对result按照时间排序
+        SortUtil.SortPhotoDateAndSorce(result);
+
         return result;
     }
 

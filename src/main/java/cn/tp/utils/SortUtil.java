@@ -1,6 +1,8 @@
 package cn.tp.utils;
 
 import cn.tp.entities.Photo;
+import cn.tp.entities.vo.PhotoDateAndSorce;
+import cn.tp.entities.vo.PhotoTimeDisplay;
 import lombok.*;
 
 import java.text.DateFormat;
@@ -161,6 +163,38 @@ public class SortUtil {
             }
         }
         return result;
+
+    }
+
+    public static List<PhotoDateAndSorce> SortPhotoDateAndSorce(List<PhotoDateAndSorce> resultPhoto) {
+        Collections.sort(resultPhoto, new Comparator<PhotoDateAndSorce>() {
+            @Override
+            public int compare(PhotoDateAndSorce o1, PhotoDateAndSorce o2) {
+                String Time1 = o1.getDate();
+                String Time2 = o2.getDate();
+
+                int res = Time2.compareTo(Time1);
+                return res;
+            }
+        });
+
+        return resultPhoto;
+
+    }
+
+    public static List<PhotoTimeDisplay> SortPhotoTimeDisplay(List<PhotoTimeDisplay> resultPhoto) {
+        Collections.sort(resultPhoto, new Comparator<PhotoTimeDisplay>() {
+            @Override
+            public int compare(PhotoTimeDisplay o1, PhotoTimeDisplay o2) {
+                String Time1 = o1.getDate();
+                String Time2 = o2.getDate();
+
+                int res = Time2.compareTo(Time1);
+                return res;
+            }
+        });
+
+        return resultPhoto;
 
     }
 
