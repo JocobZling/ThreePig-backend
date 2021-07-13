@@ -1,6 +1,7 @@
 package cn.tp.repositories;
 
 import cn.tp.entities.FaceClustering;
+import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -12,6 +13,9 @@ public interface FaceClusteringRepository extends JpaRepository<FaceClustering, 
 
     @Query(value = "select *,max(position) from FaceClustering where clusteringId in(select id from Clustering where userId = ?1)group by clusteringId", nativeQuery = true)
     List<FaceClustering> findOneFaceClustering(Long userId);
+
+    @Query(value = "select position from FaceClustering where clusteringId=:clusteringId and userId=:userId")
+    List<String> findPositionWhereUserIdAndClusteringId(@Param("clusteringId") Long clusteringId, @Param("userId") Long userId);
 
     FaceClustering findTopByAirFaceId(String airFaceId);
 

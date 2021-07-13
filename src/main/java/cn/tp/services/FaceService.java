@@ -2,7 +2,9 @@ package cn.tp.services;
 
 import cn.tp.entities.FaceClustering;
 import cn.tp.entities.Photo;
+import cn.tp.entities.vo.FacePositionAndNameAndList;
 import cn.tp.entities.vo.PhotoDisplayVo;
+import cn.tp.repositories.ClusteringRepository;
 import cn.tp.repositories.FaceClusteringRepository;
 import cn.tp.repositories.PhotoRepository;
 import cn.tp.utils.FaceUtil;
@@ -25,13 +27,16 @@ public class FaceService {
 
     private final PhotoRepository photoRepository;
 
+    private final ClusteringRepository clusteringRepository;
+
     @Value("${photoAddr}")
     private String photoAddr;
 
 
-    public FaceService(FaceClusteringRepository faceClusteringRepository, PhotoRepository photoRepository) {
+    public FaceService(FaceClusteringRepository faceClusteringRepository, PhotoRepository photoRepository,ClusteringRepository clusteringRepository) {
         this.faceClusteringRepository = faceClusteringRepository;
         this.photoRepository = photoRepository;
+        this.clusteringRepository = clusteringRepository;
     }
 
     public JSONObject getFaceDetection(String face) {
@@ -104,10 +109,35 @@ public class FaceService {
         return results;
     }
 
-    public List<PhotoDisplayVo> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
+    public List<FacePositionAndNameAndList> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
+        List<FacePositionAndNameAndList> result = new ArrayList<>();
+        String clusteringName = clusteringRepository.findName(clusteringId,userId);
+        List<String> facePos = faceClusteringRepository.findPositionWhereUserIdAndClusteringId(clusteringId,userId);
+        String facePosition = facePos.get(0);
         List<Photo> photoList = photoRepository.findPhotoByClusteringIdAndUserId(clusteringId, userId);
-        return getPhotoDisplayList(photoList);
+        FacePositionAndNameAndList facePositionAndNameAndList = new FacePositionAndNameAndList();
+        facePositionAndNameAndList.setFacePosition(facePosition);
+        facePositionAndNameAndList.setClusteringName(clusteringName);
+        facePositionAndNameAndList.setPhotoDisplayVoList(getPhotoDisplayList(photoList));
+
+        result.add(facePositionAndNameAndList);
+        return result;
+
     }
+    public boolean updateClusteringName(Long userId,Long clusteringId,String name)
+    {
+        try {
+            clusteringRepository.updateClusterName(clusteringId,userId,name);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
 
     public FaceClustering findFaceClusteringByFaceId(Integer airFaceId) {
         return faceClusteringRepository.findTopByAirFaceId(String.valueOf(airFaceId));
