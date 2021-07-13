@@ -1,6 +1,7 @@
 package cn.tp.services;
 
 import cn.tp.entities.Photo;
+import cn.tp.entities.vo.PhotoDisplayVo;
 import cn.tp.repositories.PhotoRepository;
 import cn.tp.utils.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,18 +15,20 @@ import java.util.List;
 @Service
 public class HighLightsService {
     private final PhotoRepository photoRepository;
+    private final FaceService faceService;
 
     @Autowired
-    public HighLightsService(PhotoRepository photoRepository) {
+    public HighLightsService(PhotoRepository photoRepository, FaceService faceService) {
         this.photoRepository = photoRepository;
+        this.faceService = faceService;
     }
 
 
-    public List<String> getTopPerson(Long userId, int num, boolean flag) {
-        List<String> result = new ArrayList<String>();
+    public List<PhotoDisplayVo> getTopPerson(Long userId, int num, boolean flag) {
+        List<Photo> result = new ArrayList<>();
         List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         if (resultPhoto.size() == 0) {
-            return result;
+            return faceService.getPhotoDisplayList(result);
         }
         //调用排序
         List<Photo> SortList = SortUtil.SortPhoto(resultPhoto, flag);
@@ -34,26 +37,23 @@ public class HighLightsService {
         if (len > num) {
             for (int i = 0; i < num; i++) {
                 Photo tmp = SortList.get(i);
-                result.add(tmp.getPosition());
+                result.add(tmp);
             }
 
         } else {
-            for (Photo tmp : SortList) {
-                result.add(tmp.getPosition());
-            }
+            result.addAll(SortList);
         }
-        return result;
-
+        return faceService.getPhotoDisplayList(result);
     }
 
     // num是指定拿出最近几天的数据 flag是指定facescore排序还是allscore排序 photoNum是指定最后取出多少张
-    public List<String> getRecentTop(Long userId, int num, boolean flag, int photoNum) {
-        List<String> result = new ArrayList<String>();
+    public List<PhotoDisplayVo> getRecentTop(Long userId, int num, boolean flag, int photoNum) {
+        List<Photo> result = new ArrayList<>();
         List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         //拿到最近num 天的数据 不够num全拿来
         List<Photo> RencntList = SortUtil.GetNumPhotoBaseTime(resultPhoto, num);
         if (RencntList.size() == 0) {
-            return result;
+            return faceService.getPhotoDisplayList(result);
         }
         //根据分数排序
         List<Photo> SortRecentList = SortUtil.SortPhoto(RencntList, flag);
@@ -62,25 +62,23 @@ public class HighLightsService {
         if (len > photoNum) {
             for (int i = 0; i < photoNum; i++) {
                 Photo tmp = SortRecentList.get(i);
-                result.add(tmp.getPosition());
+                result.add(tmp);
             }
 
         } else {
-            for (Photo tmp : SortRecentList) {
-                result.add(tmp.getPosition());
-            }
+            result.addAll(SortRecentList);
         }
-        return result;
+        return faceService.getPhotoDisplayList(result);
 
 
     }
 
-    public List<String> getTimeTop(long userId, String time, int num) {
-        List<String> result = new ArrayList<String>();
+    public List<PhotoDisplayVo> getTimeTop(long userId, String time, int num) {
+        List<Photo> result = new ArrayList<>();
         List<Photo> resultPhoto = photoRepository.findPhotoByUserIdOrderByCreateTimeDesc(userId);
         List<Photo> timePhoto = SortUtil.GetTimePhoto(resultPhoto, time);
         if (timePhoto.size() == 0) {
-            return result;
+            return faceService.getPhotoDisplayList(result);
         }
         boolean flag = false;
 
@@ -89,15 +87,14 @@ public class HighLightsService {
         if (len > num) {
             for (int i = 0; i < num; i++) {
                 Photo tmp = sortTimePhoto.get(i);
-                result.add(tmp.getPosition());
+                result.add(tmp);
             }
 
         } else {
-            for (Photo tmp : sortTimePhoto) {
-                result.add(tmp.getPosition());
-            }
+            result.addAll(sortTimePhoto);
         }
-        return result;
+
+        return faceService.getPhotoDisplayList(result);
     }
 
     public List<HashMap<String, String>> getEverytimePhoto(long userId) {
@@ -124,23 +121,23 @@ public class HighLightsService {
     }
 
     public String BsetPerson(long userId) {
-        List<String> res = getTopPerson(userId, 1, true);
-        return res.get(0);
+        List<PhotoDisplayVo> res = getTopPerson(userId, 1, true);
+        return res.get(0).getSrc();
     }
 
     public String BsetAll(long userId) {
-        List<String> res = getTopPerson(userId, 1, false);
-        return res.get(0);
+        List<PhotoDisplayVo> res = getTopPerson(userId, 1, false);
+        return res.get(0).getSrc();
     }
 
     public String BestRecentPerson(long userId) {
-        List<String> res = getRecentTop(userId, 5, true, 1);
-        return res.get(0);
+        List<PhotoDisplayVo> res = getRecentTop(userId, 5, true, 1);
+        return res.get(0).getSrc();
     }
 
     public String BestRecentAll(long userId) {
-        List<String> res = getRecentTop(userId, 5, false, 1);
-        return res.get(0);
+        List<PhotoDisplayVo> res = getRecentTop(userId, 5, false, 1);
+        return res.get(0).getSrc();
     }
 
 

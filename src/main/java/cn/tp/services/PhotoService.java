@@ -160,6 +160,7 @@ public class PhotoService {
                     faceClusteringRepository.save(faceClustering);
                 });
             } else if (faceNum > 10) {
+                photo.setFaceScore(String.valueOf(faceNum * 10 * 0.4));
                 photo.setType("群像");
             } else {
                 String type = getPhotoType(getPhotoType(userId, image));

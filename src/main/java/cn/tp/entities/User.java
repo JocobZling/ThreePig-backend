@@ -27,7 +27,8 @@ public class User {
     @JsonProperty("airSetId")
     private String airSetId;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime = new Date();
+    private Date
+            createTime = new Date();
 
     public User hidePassword() {
         this.password = "";

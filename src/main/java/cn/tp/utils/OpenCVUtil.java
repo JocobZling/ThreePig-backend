@@ -114,7 +114,8 @@ public class OpenCVUtil {
         if (src.empty()) {
             throw new Exception("image is empty");
         }
-        Rect rect = new Rect(new Point(lx - 20, ly - 20), new Point(rx + 20, ry + 20));
+        Rect rect = new Rect(new Point(lx - 20 >= 0 ? lx - 20 : 0, ly - 20 >= 0 ? ly - 20 : 0), new Point(rx + 20 < src.cols() ? rx + 20 : src.cols(), ry + 20 < src.rows() ? ry + 20 : src.rows()));
+
         Mat cutImage = cutImage(src, rect);
         Imgcodecs.imwrite(savePath, cutImage);
     }

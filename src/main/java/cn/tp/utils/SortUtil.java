@@ -60,8 +60,8 @@ public class SortUtil {
                 String ColorScore2 = o2.getColorScore();
 
 
-                Double Score1 = Double.parseDouble(PersonScore1) + Double.parseDouble(ColorScore1);
-                Double Score2 = Double.parseDouble(PersonScore2) + Double.parseDouble(ColorScore2);
+                Double Score1 = Double.parseDouble(PersonScore1) / 10 * 0.7 + Double.parseDouble(ColorScore1) * 0.3;
+                Double Score2 = Double.parseDouble(PersonScore2) / 10 * 0.7 + Double.parseDouble(ColorScore2) * 0.3;
 
                 Double diff = Score2 - Score1;
 
@@ -79,7 +79,7 @@ public class SortUtil {
     }
 
     public static String DateToStringDay(Date time) {
-        DateFormat df = new SimpleDateFormat("yyyy年MM月dd日");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         String strTime = df.format(time);
         return strTime;
     }
