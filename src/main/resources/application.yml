@@ -2,7 +2,7 @@ photoAddr: D:/ThreePigProject/photo/
 faceAddr: D:/ThreePigProject/face/
 ak: 5549b42e7a644bbbbdd932f73fa20ef7
 sk: 172e10898d364ca89c2bd4ecc824bc10
-imageUrl: http://127.0.0.1:8080/images/
+imageUrl: http://10.0.206.89:8080/images/
 
 
 database:
