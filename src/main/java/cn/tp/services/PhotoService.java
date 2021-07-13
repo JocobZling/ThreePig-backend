@@ -282,12 +282,24 @@ public class PhotoService {
 
     public List<HashMap<String, String>> findAllTypeOnePhotoByUserId(Long userId) {
         List<HashMap<String, String>> photoList = new ArrayList<>();
+        HashMap<String, String> qiTaTypePhoto = new HashMap<>();
         photoRepository.findAllTypeOnePhotoByUserId(userId).forEach(photo -> {
             HashMap<String, String> oneTypePhoto = new HashMap<>();
-            oneTypePhoto.put("type", photo.getType());
-            oneTypePhoto.put("position", photo.getPosition());
-            photoList.add(oneTypePhoto);
+            if(photo.getType().compareTo("其他")==0)
+            {
+
+                qiTaTypePhoto.put("type", photo.getType());
+                qiTaTypePhoto.put("position", photo.getPosition());
+
+            }
+            else
+            {
+                oneTypePhoto.put("type", photo.getType());
+                oneTypePhoto.put("position", photo.getPosition());
+                photoList.add(oneTypePhoto);
+            }
         });
+        photoList.add(qiTaTypePhoto);
         return photoList;
     }
 
