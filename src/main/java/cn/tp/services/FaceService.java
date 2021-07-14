@@ -33,7 +33,7 @@ public class FaceService {
     private String photoAddr;
 
 
-    public FaceService(FaceClusteringRepository faceClusteringRepository, PhotoRepository photoRepository,ClusteringRepository clusteringRepository) {
+    public FaceService(FaceClusteringRepository faceClusteringRepository, PhotoRepository photoRepository, ClusteringRepository clusteringRepository) {
         this.faceClusteringRepository = faceClusteringRepository;
         this.photoRepository = photoRepository;
         this.clusteringRepository = clusteringRepository;
@@ -109,28 +109,27 @@ public class FaceService {
         return results;
     }
 
-    public List<FacePositionAndNameAndList> findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
-        List<FacePositionAndNameAndList> result = new ArrayList<>();
-        String clusteringName = clusteringRepository.findName(clusteringId,userId);
-        List<String> facePos = faceClusteringRepository.findPositionWhereUserIdAndClusteringId(clusteringId,userId);
+    public FacePositionAndNameAndList findOneKlassAllPhotoByUserIdAndClusteringId(Long userId, Long clusteringId) {
+
+        FacePositionAndNameAndList facePositionAndNameAndList = new FacePositionAndNameAndList();
+
+        String clusteringName = clusteringRepository.findName(clusteringId, userId);
+        List<String> facePos = faceClusteringRepository.findPositionWhereUserIdAndClusteringId(clusteringId, userId);
         String facePosition = facePos.get(0);
         List<Photo> photoList = photoRepository.findPhotoByClusteringIdAndUserId(clusteringId, userId);
-        FacePositionAndNameAndList facePositionAndNameAndList = new FacePositionAndNameAndList();
+
         facePositionAndNameAndList.setFacePosition(facePosition);
         facePositionAndNameAndList.setClusteringName(clusteringName);
         facePositionAndNameAndList.setPhotoDisplayVoList(getPhotoDisplayList(photoList));
 
-        result.add(facePositionAndNameAndList);
-        return result;
+        return facePositionAndNameAndList;
 
     }
-    public boolean updateClusteringName(Long userId,Long clusteringId,String name)
-    {
+
+    public boolean updateClusteringName(Long userId, Long clusteringId, String name) {
         try {
-            clusteringRepository.updateClusterName(clusteringId,userId,name);
-        }
-        catch (Exception e)
-        {
+            clusteringRepository.updateClusterName(clusteringId, userId, name);
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
